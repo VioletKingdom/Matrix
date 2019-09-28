@@ -19,6 +19,7 @@ We can register and log into our account.
 ![alt text](https://i.ibb.co/F6VVzSr/Capture13.jpg)
 
 We can see all the posts about traffic nearby.
+
 ![alt text](https://i.ibb.co/mFQwPDR/Capture14.jpg)
 
 ![alt text](https://i.ibb.co/Fh2VF9p/Capture15.jpg)
