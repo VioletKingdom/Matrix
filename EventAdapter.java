@@ -41,26 +41,29 @@ public class EventAdapter extends BaseAdapter {
     * @param parent the parent that this view will eventually be attached to
     * @return Gets a View that displays in the listView with the data at the specified position in the data set.
     */
-   @Override
-   public View getView(int position, View convertView, ViewGroup parent) {
-       if (convertView == null) {
-           LayoutInflater inflater = (LayoutInflater) context.getSystemService(
-                   Context.LAYOUT_INFLATER_SERVICE);
-           convertView = inflater.inflate(R.layout.event_item,
-                   parent, false);
-       }
-
-       TextView eventTitle = (TextView) convertView.findViewById(
-               R.id.event_title);
-       TextView eventAddress = (TextView) convertView.findViewById(
-               R.id.event_address);
-       TextView eventDescription = (TextView) convertView.findViewById(
-               R.id.event_description);
-
-       Event r = eventData.get(position);
-       eventTitle.setText(r.getTitle());
-       eventAddress.setText(r.getAddress());
-       eventDescription.setText(r.getDescription());
-       return convertView;
+  @Override
+public View getView(int position, View convertView, ViewGroup parent) {
+   if (convertView == null) {
+       LayoutInflater inflater = (LayoutInflater) context.getSystemService(
+               Context.LAYOUT_INFLATER_SERVICE);
+       convertView = inflater.inflate(R.layout.event_item,
+               parent, false);
    }
+
+   ImageView eventImage = (ImageView) convertView.findViewById(R.id.event_thumbnail);
+   if (position % 2 == 1) {
+       eventImage.setImageDrawable(context.getDrawable(R.drawable.event_thumbnail));
+   } else {
+       eventImage.setImageDrawable(context.getDrawable(R.drawable.banana));
+   }
+
+
+   TextView eventTitle = (TextView) convertView.findViewById(
+           R.id.event_title);
+   TextView eventAddress = (TextView) convertView.findViewById(
+           R.id.event_address);
+   TextView eventDescription = (TextView) convertView.findViewById(
+           R.id.event_description);
+
+   Event r = eventData.get(position);
 }
