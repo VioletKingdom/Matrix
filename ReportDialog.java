@@ -8,6 +8,19 @@ import android.view.View;
 import android.view.Window;
 private RecyclerView mRecyclerView;
 private ReportRecyclerViewAdapter mRecyclerViewAdapter;
+private ViewSwitcher mViewSwitcher;
+private String mEventype;
+
+private ImageView mImageCamera;
+private Button mBackButton;
+private Button mSendButton;
+private EditText mCommentEditText;
+private ImageView mEventTypeImg;
+private TextView mTypeTextView;
+
+private DialogCallBack mDialogCallBack;
+
+
 
 
 import androidx.annotation.NonNull;
@@ -50,24 +63,39 @@ public class ReportDialog extends Dialog {
        super(context, themeResId);
    }
 
- 
-@Override
-protected void onCreate(Bundle savedInstanceState) {
-   super.onCreate(savedInstanceState);
-   final View dialogView = View.inflate(getContext(), R.layout.dialog, null);
-   requestWindowFeature(Window.FEATURE_NO_TITLE);
-   setContentView(dialogView);
-   getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+       final View dialogView = View.inflate(getContext(), R.layout.dialog, null);
+       requestWindowFeature(Window.FEATURE_NO_TITLE);
+       setContentView(dialogView);
+       setUpEventSpecs(dialogView);
 
-   //set up animation
-   setOnShowListener(new DialogInterface.OnShowListener() {
-       @Override
-       public void onShow(DialogInterface dialogInterface) {
-           animateDialog(dialogView, true);
-       }
-   });
+       getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
 
-   setOnKeyListener(new DialogInterface.OnKeyListener() {
+       //set up animation
+       setOnShowListener(new DialogInterface.OnShowListener() {
+           @Override
+           public void onShow(DialogInterface dialogInterface) {
+               animateDialog(dialogView, true);
+           }
+       });
+
+       setOnKeyListener(new DialogInterface.OnKeyListener() {
+           @Override
+           public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+               if (i == KeyEvent.KEYCODE_BACK) {
+                   animateDialog(dialogView, false);
+                   return true;
+               }
+               return false;
+           }
+       });
+       setupRecyclerView(dialogView);
+       mViewSwitcher = (ViewSwitcher) dialogView.findViewById(R.id.viewSwitcher);
+   }
+
+  setOnKeyListener(new DialogInterface.OnKeyListener() {
        @Override
        public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
            if (i == KeyEvent.KEYCODE_BACK) {
@@ -77,9 +105,18 @@ protected void onCreate(Bundle savedInstanceState) {
            return false;
        }
    });
-
    setupRecyclerView(dialogView);
+   mViewSwitcher = (ViewSwitcher) dialogView.findViewById(R.id.viewSwitcher);
+   Animation slide_in_left = AnimationUtils.loadAnimation(getContext(),
+           android.R.anim.slide_in_left);
+   Animation slide_out_right = AnimationUtils.loadAnimation(getContext(),
+           android.R.anim.slide_out_right);
+   mViewSwitcher.setInAnimation(slide_in_left);
+   mViewSwitcher.setOutAnimation(slide_out_right);
+   setUpEventSpecs(dialogView);
 }
+
+
 
 
    setOnKeyListener(new DialogInterface.OnKeyListener() {
@@ -94,6 +131,15 @@ protected void onCreate(Bundle savedInstanceState) {
    });
 }
    
+private void showNextViewSwitcher(String item) {
+   mEventype = item;
+   if (mViewSwitcher != null) {
+       mViewSwitcher.showNext();
+       mTypeTextView.setText(mEventype);              
+      mEventTypeImg.setImageDrawable(ContextCompat.getDrawable(getContext(),Config.trafficMap.get(mEventype)));
+   }
+}
+
 private void setupRecyclerView(View dialogView) {
    mRecyclerView = dialogView.findViewById(R.id.recycler_view);
    mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
@@ -103,10 +149,57 @@ private void setupRecyclerView(View dialogView) {
        @Override
        public void setItem(String item) {
            // for switch item
+           showNextViewSwitcher(item);
        }
    });
 
    mRecyclerView.setAdapter(mRecyclerViewAdapter);
+}
+
+private void showNextViewSwitcher(String item) {
+   mEventype = item;
+   if (mViewSwitcher != null) {
+       mViewSwitcher.showNext();
+   }
+}
+
+   mRecyclerView.setAdapter(mRecyclerViewAdapter);
+}
+
+private void setUpEventSpecs(final View dialogView) {
+   mImageCamera = (ImageView) dialogView.findViewById(R.id.event_camera_img);
+   mBackButton = (Button) dialogView.findViewById(R.id.event_back_button);
+   mSendButton = (Button) dialogView.findViewById(R.id.event_send_button);
+   mCommentEditText = (EditText) dialogView.findViewById(R.id.event_comment);
+   mEventTypeImg = (ImageView) dialogView.findViewById(R.id.event_type_img);
+   mTypeTextView = (TextView) dialogView.findViewById(R.id.event_type);
+   
+    
+   mSendButton.setOnClickListener(new View.OnClickListener() {
+       @Override
+       public void onClick(View view) {
+           mDialogCallBack.onSubmit(mCommentEditText.getText().toString(), mEventype);
+
+       }
+   });
+   mBackButton.setOnClickListener(new View.OnClickListener() {
+       @Override
+       public void onClick(View view) {
+           mViewSwitcher.showPrevious();
+       }
+   });
+
+}
+
+@Override
+public void onStart() {
+   super.onStart();
+   if (mEventype != null) {
+       showNextViewSwitcher(mEventype);
+   }
+   if (mPrefillText != null) {
+       mCommentEditText.setText(mPrefillText);
+   }
 }
 
 
