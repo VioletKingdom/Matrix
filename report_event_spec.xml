@@ -17,15 +17,14 @@
        android:layout_width="wrap_content"
        android:id="@+id/event_type"
        android:text="test"
-       ></TextView>
-   <ImageView
+       />
+    <ImageView
        android:id="@+id/event_type_img"
        android:layout_width="130dp"
        android:layout_height="130dp"
        android:layout_marginTop="200dp"
        android:layout_centerHorizontal="true"
        android:src="@drawable/policeman" />
-
 
    <LinearLayout
        android:layout_above="@+id/event_send"
