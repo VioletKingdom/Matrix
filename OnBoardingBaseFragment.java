@@ -1,8 +1,9 @@
-//baseFragment for register/login
 public abstract class OnBoardingBaseFragment extends Fragment {
    protected EditText usernameEditText;
    protected EditText passwordEditText;
    protected Button submitButton;
+   protected DatabaseReference database;
+
 
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -12,6 +13,7 @@ public abstract class OnBoardingBaseFragment extends Fragment {
        usernameEditText = (EditText) view.findViewById(R.id.editTextLogin);
        passwordEditText = (EditText) view.findViewById(R.id.editTextPassword);
        submitButton = (Button) view.findViewById(R.id.submit);
+       database = FirebaseDatabase.getInstance().getReference();
        return view;
 
    }
@@ -19,3 +21,4 @@ public abstract class OnBoardingBaseFragment extends Fragment {
    @LayoutRes
    protected abstract int getLayout();
 }
+
