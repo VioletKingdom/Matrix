@@ -6,6 +6,75 @@ private LocationTracker locationTracker;
 private FloatingActionButton fabReport;
 private ReportDialog dialog;
 private FloatingActionButton fabFocus;
+private DatabaseReference database;
+  
+   private static final int REQUEST_EXTERNAL_STORAGE = 1;
+   private static String[] PERMISSIONS_STORAGE = {
+           Manifest.permission.READ_EXTERNAL_STORAGE,
+           Manifest.permission.WRITE_EXTERNAL_STORAGE
+   };
+
+
+...
+public static void verifyStoragePermissions(Activity activity) {
+   // Check if we have write permission
+   int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+   if (permission != PackageManager.PERMISSION_GRANTED) {
+       // We don't have permission so prompt the user
+       ActivityCompat.requestPermissions(
+               activity,
+               PERMISSIONS_STORAGE,
+               REQUEST_EXTERNAL_STORAGE
+       );
+   }
+}
+
+//get center coordinate
+private void loadEventInVisibleMap() {
+   database.child("events").addListenerForSingleValueEvent(new ValueEventListener() {
+       @Override
+       public void onDataChange(DataSnapshot dataSnapshot) {
+           for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
+               TrafficEvent event = noteDataSnapshot.getValue(TrafficEvent.class);
+               double eventLatitude = event.getEvent_latitude();
+               double eventLongitude = event.getEvent_longitude();
+
+               LatLng center = googleMap.getCameraPosition().target;
+               double centerLatitude = center.latitude;
+               double centerLongitude = center.longitude;
+
+               int distance = Utils.distanceBetweenTwoLocations(centerLatitude, centerLongitude,
+                       eventLatitude, eventLongitude);
+
+               if (distance < 20) {
+                   LatLng latLng = new LatLng(eventLatitude, eventLongitude);
+                   MarkerOptions marker = new MarkerOptions().position(latLng);
+
+                   // Changing marker icon
+                   String type = event.getEvent_type();
+                   Bitmap icon = BitmapFactory.decodeResource(getContext().getResources(),
+                           Config.trafficMap.get(type));
+
+                   Bitmap resizeBitmap = Utils.getResizedBitmap(icon, 130, 130);
+
+                   marker.icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap));
+
+                   // adding marker
+                   Marker mker = googleMap.addMarker(marker);
+                   mker.setTag(event);
+               }
+           }
+       }
+
+       @Override
+       public void onCancelled(DatabaseError databaseError) {
+           //TODO: do something
+       }
+   });
+}
+
+
 
 
 
@@ -29,6 +98,8 @@ public MainFragment() {
                             Bundle savedInstanceState) {
        view = inflater.inflate(R.layout.fragment_main, container,
                false);
+       database = FirebaseDatabase.getInstance().getReference();
+
        return view;
    }
 @Override
@@ -71,6 +142,72 @@ public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
    }
 }
 
+private String uploadEvent(String user_id, String editString, String event_type) {
+   TrafficEvent event = new TrafficEvent();
+
+   event.setEvent_type(event_type);
+   event.setEvent_description(editString);
+   event.setEvent_reporter_id(user_id);
+   event.setEvent_timestamp(System.currentTimeMillis());
+   event.setEvent_latitude(locationTracker.getLatitude());
+   event.setEvent_longitude(locationTracker.getLongitude());
+   event.setEvent_like_number(0);
+   event.setEvent_comment_number(0);
+
+   String key = database.child("events").push().getKey();
+   event.setId(key);
+   database.child("events").child(key).setValue(event, new DatabaseReference.CompletionListener() {
+       @Override
+       public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+           if (databaseError != null) {
+               Toast toast = Toast.makeText(getContext(),
+                       "The event is failed, please check your network status.", Toast.LENGTH_SHORT);
+               toast.show();
+               dialog.dismiss();
+           } else {
+               Toast toast = Toast.makeText(getContext(), "The event is reported", Toast.LENGTH_SHORT);
+               toast.show();
+               //TODO: update map fragment
+           }
+       }
+   });
+
+   return key;
+}
+
+private void setupBottomBehavior() {
+   //set up bottom up slide
+   final View nestedScrollView = (View) view.findViewById(R.id.nestedScrollView);
+   bottomSheetBehavior = BottomSheetBehavior.from(nestedScrollView);
+
+   //set hidden initially
+   bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+   //set expansion speed
+   bottomSheetBehavior.setPeekHeight(1000);
+
+   mEventImageLike = (ImageView) view.findViewById(R.id.event_info_like_img);
+   mEventImageComment = (ImageView) view.findViewById(R.id.event_info_comment_img);
+   mEventImageType = (ImageView) view.findViewById(R.id.event_info_type_img);
+   mEventTextLike = (TextView) view.findViewById(R.id.event_info_like_text);
+   mEventTextType = (TextView) view.findViewById(R.id.event_info_type_text);
+   mEventTextLocation = (TextView) view.findViewById(R.id.event_info_location_text);
+   mEventTextTime = (TextView) view.findViewById(R.id.event_info_time_text);
+
+   mEventImageLike.setOnClickListener(new View.OnClickListener() {
+       @Override
+       public void onClick(View view) {
+           int number = Integer.parseInt(mEventTextLike.getText().toString());
+           database.child("events").child(mEvent.getId()).child("event_like_number").setValue(number + 1);
+           mEventTextLike.setText(String.valueOf(number + 1));
+       }
+   });
+
+}
+
+
+
+
 
 
 
@@ -98,6 +235,14 @@ public void onLowMemory() {
    super.onLowMemory();
    mapView.onLowMemory();
 }
+
+
+@Override
+public void onSubmit(String editString, String event_type){
+   String key = uploadEvent(Config.username, editString, event_type);
+  
+}
+
 
 
 private void showDialog(String label, String prefillText) {
