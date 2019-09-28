@@ -52,6 +52,10 @@ public View onCreateView(LayoutInflater inflater, ViewGroup container,
    }
 });
 
+AdView mAdView = (AdView) view.findViewById(R.id.adView);
+AdRequest adRequest = new AdRequest.Builder().build();
+mAdView.loadAd(adRequest);
+
 
    return view;
 }
