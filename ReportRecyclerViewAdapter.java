@@ -74,4 +74,4 @@ public class ReportRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
            mImageView = (ImageView) itemView.findViewById(R.id.info_img);
        }
    }
-}
+} 
