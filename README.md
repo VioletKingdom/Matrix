@@ -1,5 +1,5 @@
 # Matrix
-LBS based Android App for smart driving
+Location-Based Serive Android App for smart driving
 
 - Integrated Google Map API to display the nearby hot alerts and navigate to avoid the traffic.
 
